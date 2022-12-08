@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-def read_data(filename: str):
+def read_data(filename: str);
     '''
         Takes a string which represents the file name of the dataset in csv format and returns a pandas dataframe in 
         the original and a transposed format
