@@ -1,13 +1,12 @@
 # Importing Libraries for data handling
-import numpy as np
 import pandas as pd
 
 # Importing Libraries for Visualisation 
-import matplotlib.pyplot as plt
 import seaborn as sns
+import matplotlib.pyplot as plt
 
 
-def read_data(filename: str);
+def read_data(filename: str):
     '''
         Takes a string which represents the file name of the dataset in csv format and returns a pandas dataframe in 
         the original and a transposed format
@@ -97,18 +96,133 @@ def compare_stat_of_countries(countries: list, indicator : str):
     return pd.concat(country_stat_list, axis=1)
 
 
+
 # compare the following indicators (Electric power consumption, Total greenhouse gas emissions ) stat for the countries below
-countries = ['Bangladesh', 'Brazil', 'Canada', 'China', 
-                      'Ecuador', 'France', 'India', 'Nigeria', 'South Africa', 'Sweden', 'United Kingdom', 'United States' ]
+countries = ['Gabon', 'Oman', 'India', 'Brazil', 'Peru', 'Lithuania', 'Mexico', 'France']
 
 print(compare_stat_of_countries(countries, 'Electric power consumption (kWh per capita)') )
 
 print(compare_stat_of_countries(countries, 'Total greenhouse gas emissions (kt of CO2 equivalent)') )
 
 
-#Now lets bring in GDP as we are interested in how it impacted and was impacted by other indicators
-gdp_df = pd.read_csv('GDP.csv')
-df = pd.concat([original_df, gdp_df])
-print(df.head())
+
+# Exploring our relationship between different indicator across some countries
+def bar_chart(df, countries: list, indicator: str):
+    '''
+        Returns a bar chart representing the indicator performance of several countries over the years
+        
+        Args:
+            df => pandas.Dataframe, original data frame format
+            countries => list, of countries of interest
+            indicator => str, selected indicator
+        Returns:
+            plot => barchart 
+    '''
+    
+    #filter dataframe to contain slected cunties and indicator
+    df = df[df['Country Name'].isin(countries)]
+    df = df[df['Indicator Name'] == indicator]
+    
+    df = df[['Country Name', '1990', '1995', '2000', '2005', '2010', '2015']]
+    df.set_index('Country Name').plot.bar(figsize = (14,9)) 
+    plt.title(indicator)
+    plt.savefig("barchart.png")
+    
+
+# Plot Energy consumed for the selected countries from 1990 to 2015 at 5 years increment
+bar_chart(original_df, countries, 'Energy use (kg of oil equivalent per capita)')
+
+
+# Plot Access to electricity for the selected countries from 1990 to 2015 at 5 years increment
+bar_chart(original_df, countries, 'Access to electricity (% of population)')
+
+
+# Plot CO2 emission for the selected countries from 1990 to 2015 at 5 years increment
+bar_chart(original_df, countries, 'CO2 emissions (kt)')
+
+
+# We can see that trend is specific to North America, Now lets explore USA
+def heatmap(df, country: str, indicators: list):
+    '''
+        plot the heatmap of country for different indicators
+        
+        Args:
+            df => pandas.Dataframe, original format
+            countries => str, selected countries 
+            indicator => list, of indicators to check correlation on
+            
+        Returns:
+            plot => line chart 
+    '''
+    
+    coun_df = df[(df['Country Name'] == country) & (df['Indicator Name'].isin(indicators))]
+    
+    corr_df = coun_df.set_index('Indicator Name').iloc[:, 3:].T
+    corr_df.columns.name = None
+    corr_df.index.name = None
+    
+    
+    #set plot size and plot heatmap of correlation
+    plt.figure(figsize=(14,9))
+    corr = corr_df.corr()
+    sns.heatmap(corr, annot=True, linewidths=.2, cmap='rainbow', vmin=-1, vmax=1)
+    plt.title(country)
+    plt.savefig("heatmap.png")
+    
+
+ind_of_interest = ['Energy use (kg of oil equivalent per capita)', 'Electricity production from nuclear sources (% of total)', 'Access to electricity (% of population)', 'Forest area (% of land area)', 'Cereal yield (kg per hectare)', 'Poverty headcount ratio at $2.15 a day (2017 PPP) (% of population)', 'CO2 emissions (kt)'] 
+
+# check indicator correlation for India
+heatmap(original_df, 'India', ind_of_interest)
+
+
+
+
+def line_plot(df, countries: list, indicator: str):
+    '''
+        Plots a line chart showing the indicator performance of certain countries over the years
+        
+        Args:
+            df => pandas.Dataframe, original format
+            countries => list, of countries of interest
+            indicator => str, selected indicator
+
+        Returns:
+            plot => line chart 
+    '''
+    
+    coun_df = df[(df['Country Name'].isin(countries)) & (df['Indicator Name'] == indicator)]
+    
+    coun_df = coun_df.set_index('Country Name').iloc[:, 3:].T
+    coun_df.columns.name = None
+    
+    plt.style.use('seaborn-white')
+
+    coun_df.plot( figsize=(14, 12), linestyle='--' )
+
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    plt.xlabel('Year')
+    plt.ylabel(indicator)
+    plt.title(f'{indicator} trend' )
+    plt.savefig("lINE PLOT.png")
+    plt.show()
+  
+ 
+
+#Exploring trend of cereal yield and forest area   
+for ind in ['Forest area (% of land area)', 'Cereal yield (kg per hectare)']:
+    line_plot(original_df, ['Oman', 'India', 'France'], ind)
+    
+#plot heatmap for France
+heatmap(original_df, 'France', ind_of_interest)
+
+
+#plot heatmap for Peru
+heatmap(original_df, 'Peru', ind_of_interest)
+
+
+
+
+
 
 
