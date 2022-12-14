@@ -140,7 +140,6 @@ bar_chart(original_df, countries, 'Access to electricity (% of population)')
 # Plot CO2 emission for the selected countries from 1990 to 2015 at 5 years increment
 bar_chart(original_df, countries, 'CO2 emissions (kt)')
 
-
 # We can see that trend is specific to North America, Now lets explore USA
 def heatmap(df, country: str, indicators: list):
     '''
@@ -160,12 +159,23 @@ def heatmap(df, country: str, indicators: list):
     corr_df = coun_df.set_index('Indicator Name').iloc[:, 3:].T
     corr_df.columns.name = None
     corr_df.index.name = None
-    
-    
-    #set plot size and plot heatmap of correlation
-    plt.figure(figsize=(14,9))
     corr = corr_df.corr()
-    sns.heatmap(corr, annot=True, linewidths=.2, cmap='rainbow', vmin=-1, vmax=1)
+    
+    # plot heat map
+    fig, ax = plt.subplots()
+    im = ax.imshow(corr, cmap="rainbow")
+    cbar = ax.figure.colorbar(im, ax = ax, shrink=0.5 )
+    
+    # set x, y axis labels and rotate x-label by 90
+    ax.set_xticks(np.arange(len(corr.index.values)), labels=corr.index.values)
+    ax.set_yticks(np.arange(len(corr.columns.values)), labels=corr.columns.values)
+    plt.setp(ax.get_xticklabels(), rotation=90, ha="right", rotation_mode="anchor")
+    
+    #annotate data value on heat
+    for i in range(len(corr.columns.values)):
+        for j in range(len(corr.index.values)):
+            text = ax.text(j, i, round(corr.iloc[i, j], 2), ha="center", va="center", color="w")
+    
     plt.title(country)
     plt.savefig("heatmap.png")
     
